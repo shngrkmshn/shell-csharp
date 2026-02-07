@@ -53,11 +53,10 @@ public class AutoCompletionHandler : IAutoCompleteHandler
             }
         }
     }
-    
-    bool _pressedTabOnce = false;
-    public string[] GetSuggestions(string text, int index)
+
+    private bool _pressedTabOnce;
+    public string[]? GetSuggestions(string text, int index)
     {
-        _pressedTabOnce = true;
         var builtinMatches = _builtins.Where(x => x.StartsWith(text));
         var executableMatches = GetExecutablesFromPath(text);
 
@@ -68,13 +67,32 @@ public class AutoCompletionHandler : IAutoCompleteHandler
             Console.Write("\x07");
             return Array.Empty<string>();
         }
-        
-        Console.Write("\x07");
-        if (_pressedTabOnce!)
+
+        if (matches.Length == 1)
+        {
+            // Single match: complete immediately
+            _pressedTabOnce = false;
             return matches.Select(b => b.Substring(text.Length) + " ").ToArray();
+        }
+
+        // Multiple matches: ring bell
+        Console.Write("\x07");
+
+        if (!_pressedTabOnce)
+        {
+            // First TAB: set flag and don't complete yet
+            _pressedTabOnce = true;
+            return Array.Empty<string>();
+        }
         else
         {
-            return matches;
+            // Second TAB: show all options
+            Array.Sort(matches, StringComparer.Ordinal);
+            Console.WriteLine();
+            Console.WriteLine(string.Join("  ", matches));
+            Console.Write("$ " + text);
+            _pressedTabOnce = false;
+            return null;
         }
     }
 }
