@@ -3,7 +3,7 @@ public class AutoCompletionHandler : IAutoCompleteHandler
 {
     public char[] Separators { get; set; } = "abcdefghijklmnopqrstuvwxyz".ToArray();
 
-    private readonly string[] builtins = { "echo", "exit", "pwd", "cd", "type" };
+    private readonly string[] _builtins = { "echo", "exit", "pwd", "cd", "type" };
 
     private static bool IsExecutable(string fullPath)
     {
@@ -53,10 +53,12 @@ public class AutoCompletionHandler : IAutoCompleteHandler
             }
         }
     }
-
+    
+    bool _pressedTabOnce = false;
     public string[] GetSuggestions(string text, int index)
     {
-        var builtinMatches = builtins.Where(x => x.StartsWith(text));
+        _pressedTabOnce = true;
+        var builtinMatches = _builtins.Where(x => x.StartsWith(text));
         var executableMatches = GetExecutablesFromPath(text);
 
         var matches = builtinMatches.Concat(executableMatches).Distinct().ToArray();
@@ -66,7 +68,13 @@ public class AutoCompletionHandler : IAutoCompleteHandler
             Console.Write("\x07");
             return Array.Empty<string>();
         }
-
-        return matches.Select(b => b.Substring(text.Length) + " ").ToArray();
+        
+        Console.Write("\x07");
+        if (_pressedTabOnce!)
+            return matches.Select(b => b.Substring(text.Length) + " ").ToArray();
+        else
+        {
+            return matches;
+        }
     }
 }
