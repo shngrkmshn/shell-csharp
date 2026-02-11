@@ -1,11 +1,20 @@
 public class AutoCompletionHandler : IAutoCompleteHandler
 {
-    public char[] Separators { get; set; } = new[] { ' ' };
+    public char[] Separators { get; set; } = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-./"
+        .ToCharArray();
 
     private readonly string[] _builtins = { "echo", "exit", "pwd", "cd", "type" };
 
+    private static readonly string[] WindowsExeExtensions = { ".exe", ".cmd", ".bat", ".com" };
+
     private static bool IsExecutable(string fullPath)
     {
+        if (OperatingSystem.IsWindows())
+        {
+            var ext = Path.GetExtension(fullPath);
+            return WindowsExeExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase);
+        }
+
         try
         {
             var mode = File.GetUnixFileMode(fullPath);
@@ -71,8 +80,14 @@ public class AutoCompletionHandler : IAutoCompleteHandler
     }
 
     private bool _pressedTabOnce;
+    private string _lastText = string.Empty;
     public string[]? GetSuggestions(string text, int index)
     {
+        if (text != _lastText)
+        {
+            _pressedTabOnce = false;
+            _lastText = text;
+        }
         var builtinMatches = _builtins.Where(x => x.StartsWith(text));
         var executableMatches = GetExecutablesFromPath(text);
 
@@ -88,17 +103,17 @@ public class AutoCompletionHandler : IAutoCompleteHandler
         {
             // Single match: complete immediately
             _pressedTabOnce = false;
-            return matches.Select(b => b.Substring(text.Length) + " ").ToArray();
+            return new[] { matches[0].Substring(index) + " " };
         }
         
         //LCP situation, the code is really dumb right now, due to some ReadLine library quirks
         var lcpMatch = LongestCommonPrefix(matches);
         
-        if (matches.Length > 1 && lcpMatch != null && lcpMatch.Length > text.Length )
+        if (matches.Length > 1 && lcpMatch != null && lcpMatch.Length > text.Length)
         {
             _pressedTabOnce = false;
-            matches = new[] { lcpMatch };
-            return matches.Select(b => b.Substring(text.Length)).ToArray();
+            _lastText = lcpMatch;
+            return new[] { lcpMatch.Substring(index) };
         }
         
         // Multiple matches: ring bell

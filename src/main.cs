@@ -2,8 +2,16 @@ using System.Diagnostics;
 //to add: linux or windows checks, and compatibility for both
 class Program
 {
+    private static readonly string[] WindowsExeExtensions = { ".exe", ".cmd", ".bat", ".com" };
+
     static bool IsExecutable(string fullPath)
     {
+        if (OperatingSystem.IsWindows())
+        {
+            var ext = Path.GetExtension(fullPath);
+            return WindowsExeExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase);
+        }
+
         try
         {
             var mode = File.GetUnixFileMode(fullPath);

@@ -407,3 +407,6 @@ ASALocalRun/
 # Claude Code
 CLAUDE.md
 /nul
+
+# Local test executables
+test_bins/
