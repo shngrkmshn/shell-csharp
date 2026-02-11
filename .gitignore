@@ -403,3 +403,7 @@ ASALocalRun/
 
 # Local History for Visual Studio
 .localhistory/
+
+# Claude Code
+CLAUDE.md
+/nul
