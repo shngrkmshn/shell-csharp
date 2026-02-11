@@ -1,7 +1,6 @@
-
 public class AutoCompletionHandler : IAutoCompleteHandler
 {
-    public char[] Separators { get; set; } = new[] { ' ', '\t' };
+    public char[] Separators { get; set; } = new[] { ' ' };
 
     private readonly string[] _builtins = { "echo", "exit", "pwd", "cd", "type" };
 
@@ -27,6 +26,7 @@ public class AutoCompletionHandler : IAutoCompleteHandler
             yield break;
 
         var seen = new HashSet<string>();
+
         foreach (var path in paths)
         {
             if (!Directory.Exists(path))
@@ -52,96 +52,74 @@ public class AutoCompletionHandler : IAutoCompleteHandler
             }
         }
     }
+    
+    
+    
+    
 
-    private string FindLongestCommonPrefix(string[] matches)
+    private static string? LongestCommonPrefix(string[] items)
     {
-        if (matches.Length == 0) return "";
-        if (matches.Length == 1) return matches[0];
-
-        var prefix = matches[0];
-        for (int i = 1; i < matches.Length; i++)
+        if (items.Length == 0) return null;
+        var prefix = items[0];
+        foreach (var item in items.Skip(1))
         {
-            int j = 0;
-            while (j < prefix.Length && j < matches[i].Length && prefix[j] == matches[i][j])
-            {
-                j++;
-            }
-            prefix = prefix.Substring(0, j);
-            if (prefix.Length == 0)
-                break;
+            int i = 0;
+            while (i < prefix.Length && i < item.Length && prefix[i] == item[i]) i++;
+            prefix = prefix[..i];
         }
-        return prefix;
+        return prefix.Length > 0 ? prefix : null;
     }
 
     private bool _pressedTabOnce;
-    private static readonly string _logFile = Environment.GetEnvironmentVariable("DBG_LOG") ?? "/tmp/shell-dbg.log";
-
-    private static void Dbg(string msg)
+    public string[]? GetSuggestions(string text, int index)
     {
-        try { File.AppendAllText(_logFile, msg + "\n"); } catch { }
-    }
+        var builtinMatches = _builtins.Where(x => x.StartsWith(text));
+        var executableMatches = GetExecutablesFromPath(text);
 
-    public string[] GetSuggestions(string text, int index)
-    {
-        // Workaround: in some test/CI consoles, ReadLine passes index=0 even when cursor is at end.
-        int cursor = (index == 0 && text.Length > 0) ? text.Length : Math.Clamp(index, 0, text.Length);
-        Dbg($"text=\"{text}\" index={index} cursor={cursor}");
-
-        // Extract the current token (last word) from the FULL line.
-        int start = text.LastIndexOfAny(Separators, Math.Max(0, cursor - 1));
-        start = (start == -1) ? 0 : start + 1;
-        string currentWord = text.Substring(start, cursor - start);
-        Dbg($"start={start} currentWord=\"{currentWord}\"");
-
-        var matches = _builtins.Where(x => x.StartsWith(currentWord, StringComparison.Ordinal))
-            .Concat(GetExecutablesFromPath(currentWord))
-            .Distinct()
-            .ToArray();
-
-        Array.Sort(matches, StringComparer.Ordinal);
-        Dbg($"matches ({matches.Length}): [{string.Join(", ", matches)}]");
+        var matches = builtinMatches.Concat(executableMatches).Distinct().ToArray();
 
         if (matches.Length == 0)
         {
-            Dbg("-> no matches, bell");
             Console.Write("\x07");
-            _pressedTabOnce = false;
             return Array.Empty<string>();
         }
 
         if (matches.Length == 1)
         {
-            string completion = matches[0] + " ";
-            Dbg($"-> single match, returning \"{completion}\"");
+            // Single match: complete immediately
             _pressedTabOnce = false;
-            return new[] { completion };
+            return matches.Select(b => b.Substring(text.Length) + " ").ToArray();
         }
-
-        string lcp = FindLongestCommonPrefix(matches);
-        Dbg($"lcp=\"{lcp}\" lcp.Length={lcp.Length} currentWord.Length={currentWord.Length}");
-
-        if (lcp.Length > currentWord.Length)
+        
+        //LCP situation, the code is really dumb right now, due to some ReadLine library quirks
+        var lcpMatch = LongestCommonPrefix(matches);
+        
+        if (matches.Length > 1 && lcpMatch != null && lcpMatch.Length > text.Length )
         {
-            Dbg($"-> LCP extends, returning \"{lcp}\"");
             _pressedTabOnce = false;
-            return new[] { lcp };
+            matches = new[] { lcpMatch };
+            return matches.Select(b => b.Substring(text.Length)).ToArray();
         }
+        
+        // Multiple matches: ring bell
+        Console.Write("\x07");
 
         if (!_pressedTabOnce)
         {
-            Dbg("-> first tab, bell");
-            Console.Write("\x07");
+            // First TAB: set flag and don't complete yet
             _pressedTabOnce = true;
             return Array.Empty<string>();
         }
-
-        Dbg("-> second tab, printing all matches");
-        Console.WriteLine();
-        Console.WriteLine(string.Join("  ", matches));
-        Console.Write("$ " + text);
-        Console.Write("\u001b[0K");
-        _pressedTabOnce = false;
-        return Array.Empty<string>();
+        
+        else
+        {
+            // Second TAB: show all options
+            Array.Sort(matches, StringComparer.Ordinal);
+            Console.WriteLine();
+            Console.WriteLine(string.Join("  ", matches));
+            Console.Write("$ " + text);
+            _pressedTabOnce = false;
+            return null;
+        }
     }
-
 }

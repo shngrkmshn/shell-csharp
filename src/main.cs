@@ -112,65 +112,17 @@ class Program
     
     
     
-    static readonly AutoCompletionHandler _completionHandler = new AutoCompletionHandler();
-
-    static string ReadInput(string prompt)
-    {
-        Console.Write(prompt);
-        Console.Out.Flush();
-        var buffer = new System.Text.StringBuilder();
-
-        while (true)
-        {
-            var key = Console.ReadKey(true);
-
-            if (key.Key == ConsoleKey.Enter)
-            {
-                Console.WriteLine();
-                return buffer.ToString();
-            }
-            else if (key.Key == ConsoleKey.Backspace)
-            {
-                if (buffer.Length > 0)
-                {
-                    buffer.Remove(buffer.Length - 1, 1);
-                    Console.Write("\b \b");
-                }
-            }
-            else if (key.Key == ConsoleKey.Tab)
-            {
-                string text = buffer.ToString();
-                string[] completions = _completionHandler.GetSuggestions(text, 0);
-                if (completions.Length > 0)
-                {
-                    string completion = completions[0];
-                    // Find where the current word starts (same logic as ReadLine library)
-                    int wordStart = text.LastIndexOfAny(_completionHandler.Separators);
-                    wordStart = (wordStart == -1) ? 0 : wordStart + 1;
-                    // Replace the current word with the completion
-                    string newText = text.Substring(0, wordStart) + completion;
-                    buffer.Clear();
-                    buffer.Append(newText);
-                    // Redraw using carriage return (no cursor position tracking needed)
-                    Console.Write($"\r{prompt}{newText}\x1b[0K");
-                    Console.Out.Flush();
-                }
-            }
-            else if (key.KeyChar != '\0')
-            {
-                buffer.Append(key.KeyChar);
-                Console.Write(key.KeyChar);
-            }
-        }
-    }
-
     static void Main()
     {
+
+        ReadLine.AutoCompletionHandler = new AutoCompletionHandler();
+
+
         while (true)
         {
             var append = false;
 
-            var consoleInput = ReadInput("$ ")?.Trim();
+            var consoleInput = ReadLine.Read("$ ")?.Trim();
             if (consoleInput == null) continue;
             var tokenizedInput = TokenizationHandler.Tokenize(consoleInput);
             if (tokenizedInput == null)
