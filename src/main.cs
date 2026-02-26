@@ -22,7 +22,7 @@ class Program
             return false;
         }
     }
-    static string? FindExecutableInPath(string fileName)
+    public static string? FindExecutableInPath(string fileName)
     {
         var paths = Environment.GetEnvironmentVariable("PATH")?
             .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries);
@@ -151,26 +151,14 @@ class Program
             
             if (pipelineIndex != -1)
             {
-                var leftTokens = tokenizedInput.Take(pipelineIndex).ToList();
-                var rightTokens = tokenizedInput.Skip(pipelineIndex + 1).ToList();
-
-                if (leftTokens.Count == 0 || rightTokens.Count == 0)
+                if (!PipelineHandler.TryParsePipeline(tokenizedInput, out var pipeline, out var err))
                 {
-                    Console.WriteLine("syntax error near unexpected token `|`");
+                    Console.WriteLine(err);
                     continue;
                 }
-
-                var leftCmd = leftTokens[0];
-                var leftArgs = leftTokens.Skip(1).ToList();
-                var rightCmd = rightTokens[0];
-                var rightArgs = rightTokens.Skip(1).ToList();
-
-                PipelineHandler.RunPipeline2(leftCmd, leftArgs, rightCmd, rightArgs).GetAwaiter().GetResult();
-                continue; // IMPORTANT: do not fall through to normal execution/redirection
+                PipelineHandler.RunPipelineN(pipeline).GetAwaiter().GetResult();
+                continue;
             }
-            
-            
-            
             //redirect needed or not
             if (redirectionIndex != -1)
             {
