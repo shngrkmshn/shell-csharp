@@ -11,7 +11,7 @@ public class TokenizationHandler
             return null;
         
         var tokens = new List<string>();
-        var currentToken = new System.Text.StringBuilder(); //the robot suggested this
+        var currentToken = new System.Text.StringBuilder();
         bool inSingleQuote = false, inDoubleQuote = false; 
         bool backSlashed = false, backSlashedInDoubleQuote = false; //this is way too specific of a bool probably
         
@@ -64,8 +64,19 @@ public class TokenizationHandler
                 currentToken.Clear();
                 continue;
             }
+            
+            // Pipe indicator (only when not in quotes)
+            if (character == '|' && !inSingleQuote && !inDoubleQuote)
+            {
+                if (currentToken.Length > 0)
+                {
+                    tokens.Add(currentToken.ToString());
+                    currentToken.Clear();
+                }
+                tokens.Add("|");
+                continue;
+            }
             //skip
-            if (!backSlashed || !backSlashedInDoubleQuote)
                 currentToken.Append(character);
         }
         if (currentToken.Length > 0)

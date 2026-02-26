@@ -144,8 +144,33 @@ class Program
             var errorRedirectionIndex = tokenizedInput.FindIndex(t => t is "2>");
             var appendRedirectionIndex = tokenizedInput.FindIndex(t => t is ">>" or "1>>");
             var appendErrorRedirectionIndex = tokenizedInput.FindIndex(t => t is "2>>");
+            var pipelineIndex = tokenizedInput.FindIndex(t => t == "|");
+
             string? redirectFile = null;
             string? errorRedirectionFile = null;
+            
+            if (pipelineIndex != -1)
+            {
+                var leftTokens = tokenizedInput.Take(pipelineIndex).ToList();
+                var rightTokens = tokenizedInput.Skip(pipelineIndex + 1).ToList();
+
+                if (leftTokens.Count == 0 || rightTokens.Count == 0)
+                {
+                    Console.WriteLine("syntax error near unexpected token `|`");
+                    continue;
+                }
+
+                var leftCmd = leftTokens[0];
+                var leftArgs = leftTokens.Skip(1).ToList();
+                var rightCmd = rightTokens[0];
+                var rightArgs = rightTokens.Skip(1).ToList();
+
+                PipelineHandler.RunPipeline2(leftCmd, leftArgs, rightCmd, rightArgs).GetAwaiter().GetResult();
+                continue; // IMPORTANT: do not fall through to normal execution/redirection
+            }
+            
+            
+            
             //redirect needed or not
             if (redirectionIndex != -1)
             {
