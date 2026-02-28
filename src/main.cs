@@ -124,8 +124,8 @@ class Program
     {
 
         ReadLine.AutoCompletionHandler = new AutoCompletionHandler();
-
-
+        var inputHistory =  new List<string>();
+        
         while (true)
         {
             var append = false;
@@ -138,8 +138,11 @@ class Program
                 Console.WriteLine($"{consoleInput}: input not found");
                 continue;
             }
-
-          
+            
+            //very simple command history
+            inputHistory.Add(consoleInput);
+            
+            //flags for all redirection behavior, maybe could be improved to be more readable later.
             var redirectionIndex = tokenizedInput.FindIndex(t => t is ">" or "1>");
             var errorRedirectionIndex = tokenizedInput.FindIndex(t => t is "2>");
             var appendRedirectionIndex = tokenizedInput.FindIndex(t => t is ">>" or "1>>");
