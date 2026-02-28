@@ -220,7 +220,7 @@ class Program
                     if (tokenizedInput.Count < 2) { Console.WriteLine("type: missing argument"); break; }
                     switch (tokenizedInput[1])
                     {
-                        case "exit" or "quit" or "type" or "echo" or "pwd":
+                        case "exit" or "quit" or "type" or "echo" or "pwd" or "history":
                             Console.WriteLine($"{tokenizedInput[1]} is a shell builtin");
                             break;
                         default: //assumes we are checking for paths, for now

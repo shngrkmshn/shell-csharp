@@ -70,7 +70,7 @@ public static class PipelineHandler
         {
             // Decide stage input/output
             Stream input = (i == 0)
-                ? Stream.Null
+                ? Stream.Null //I WRITE ALL THIS, AND THIS ONE SINGLE LINE WAS THE ONLY ISSUE, AND AI FOUND IT. I dont know if I could find this myself.
                 : pipes[i - 1].Reader.AsStream();
 
             Stream output = (i == n - 1)
@@ -194,7 +194,7 @@ public static class PipelineHandler
 
                 switch (tokens[1])
                 {
-                    case "exit" or "quit" or "type" or "echo" or "pwd":
+                    case "exit" or "quit" or "type" or "echo" or "pwd" or "history":
                         await WriteLineToStreamAsync($"{tokens[1]} is a shell builtin", output);
                         break;
 
