@@ -8,7 +8,7 @@ public static class PipelineHandler
 {
     static List<string> _builtins = new()
     {
-        "cd", "exit", "echo", "pwd", "type"
+        "cd", "exit", "echo", "pwd", "type", "history"
     };
     
     
@@ -54,7 +54,7 @@ public static class PipelineHandler
     
     
     // pipeline[i] is the token list of command i (no "|" tokens inside)
-    public static async Task RunPipelineN(List<List<string>> pipeline)
+    public static async Task RunPipelineN(List<List<string>> pipeline, List<string> inputHistory)
     {
         int n = pipeline.Count;
         if (n == 0) return;
@@ -70,7 +70,7 @@ public static class PipelineHandler
         {
             // Decide stage input/output
             Stream input = (i == 0)
-                ? Stream.Null //I WRITE ALL THIS, AND THIS ONE SINGLE LINE WAS THE ONLY ISSUE, AND AI FOUND IT. I dont know if I could find this myself.
+                ? Stream.Null //bugs happen when this isnt like this
                 : pipes[i - 1].Reader.AsStream();
 
             Stream output = (i == n - 1)
@@ -81,7 +81,7 @@ public static class PipelineHandler
             bool closeOutput = (i != n - 1);  // only close pipe streams
 
             // Capture locals for task
-            tasks[i] = RunStageAsync(pipeline[i], input, output, closeInput, closeOutput);
+            tasks[i] = RunStageAsync(pipeline[i], input, output, closeInput, closeOutput, inputHistory);
         }
 
         await Task.WhenAll(tasks);
@@ -92,7 +92,8 @@ public static class PipelineHandler
         Stream input,
         Stream output,
         bool closeInput,
-        bool closeOutput)
+        bool closeOutput,
+        List<string> inputHistory)
     {
         try
         {
@@ -100,7 +101,7 @@ public static class PipelineHandler
 
             if (IsBuiltin(cmd))
             {
-                await RunBuiltinAsync(tokens, input, output);
+                await RunBuiltinAsync(tokens, input, output, inputHistory);
             }
             else
             {
@@ -158,12 +159,12 @@ public static class PipelineHandler
     {
         return _builtins.Contains(cmd);
     }
-    private static Task WriteLineToStreamAsync(string content, Stream stream)
+    public static Task WriteLineToStreamAsync(string content, Stream stream)
     {
         byte[] bytes = Encoding.UTF8.GetBytes(content + Environment.NewLine);
         return stream.WriteAsync(bytes, 0, bytes.Length);
     }
-    private static async Task RunBuiltinAsync(List<string> tokens, Stream input, Stream output)
+    private static async Task RunBuiltinAsync(List<string> tokens, Stream input, Stream output, List<string> inputHistory)
     {
         if (tokens.Count == 0) return;
 
@@ -222,6 +223,10 @@ public static class PipelineHandler
 
             case "cd":
                 await WriteLineToStreamAsync("cd: not supported in pipelines", stderr);
+                break;
+            
+            case "history":
+                HistoryHandler.ListHistoryAsync(inputHistory, output).Wait();
                 break;
 
             default:

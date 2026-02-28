@@ -159,7 +159,7 @@ class Program
                     Console.WriteLine(err);
                     continue;
                 }
-                PipelineHandler.RunPipelineN(pipeline).GetAwaiter().GetResult();
+                PipelineHandler.RunPipelineN(pipeline, inputHistory).GetAwaiter().GetResult();
                 continue;
             }
             //redirect needed or not
@@ -271,6 +271,9 @@ class Program
                     Directory.SetCurrentDirectory(tokenizedInput[1]);
                     break;
                 
+                case "history":
+                    HistoryHandler.ListHistoryAsync(inputHistory, Console.OpenStandardOutput()).Wait();
+                    break;
                 default: //now we assume the command is a program
                     var executable = FindExecutableInPath(command);
                     if (executable == null)
