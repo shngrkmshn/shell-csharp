@@ -123,14 +123,15 @@ class Program
     static void Main()
     {
 
-        ReadLine.AutoCompletionHandler = new AutoCompletionHandler();
+        ReadLine.ReadLine.Context.AutoCompletionHandler = new AutoCompletionHandler();
+        ReadLine.ReadLine.Context.HistoryEnabled = true;
         var inputHistory =  new List<string>();
         
         while (true)
         {
             var append = false;
 
-            var consoleInput = ReadLine.Read("$ ")?.Trim();
+            var consoleInput = ReadLine.ReadLine.Read("$ ")?.Trim();
             if (consoleInput == null) continue;
             var tokenizedInput = TokenizationHandler.Tokenize(consoleInput);
             if (tokenizedInput == null)
@@ -138,10 +139,11 @@ class Program
                 Console.WriteLine($"{consoleInput}: input not found");
                 continue;
             }
+            if (tokenizedInput.Count == 0)
+                continue;
             
             //very simple command history
             inputHistory.Add(consoleInput);
-            ReadLine.AddHistory(consoleInput);
             
             //flags for all redirection behavior, maybe could be improved to be more readable later.
             var redirectionIndex = tokenizedInput.FindIndex(t => t is ">" or "1>");

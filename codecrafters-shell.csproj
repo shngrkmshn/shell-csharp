@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ReadLine" Version="2.0.1" />
+    <PackageReference Include="ReadLine.Ext" Version="0.0.9" />
   </ItemGroup>
 
 </Project>

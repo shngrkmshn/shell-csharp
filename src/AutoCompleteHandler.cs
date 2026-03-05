@@ -1,3 +1,5 @@
+using ReadLine;
+
 public class AutoCompletionHandler : IAutoCompleteHandler
 {
     public char[] Separators { get; set; } = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-./"
@@ -81,7 +83,7 @@ public class AutoCompletionHandler : IAutoCompleteHandler
 
     private bool _pressedTabOnce;
     private string _lastText = string.Empty;
-    public string[]? GetSuggestions(string text, int index)
+    public string[] GetSuggestions(string text, int index)
     {
         if (text != _lastText)
         {
@@ -134,7 +136,7 @@ public class AutoCompletionHandler : IAutoCompleteHandler
             Console.WriteLine(string.Join("  ", matches));
             Console.Write("$ " + text);
             _pressedTabOnce = false;
-            return null;
+            return Array.Empty<string>();
         }
     }
 }
