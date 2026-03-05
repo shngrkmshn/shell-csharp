@@ -272,7 +272,10 @@ class Program
                     break;
                 
                 case "history":
-                    HistoryHandler.ListHistoryAsync(inputHistory, Console.OpenStandardOutput()).Wait();
+                    if (tokenizedInput.Count > 1 && int.TryParse(tokenizedInput[1], out int historyCount))
+                        HistoryHandler.ListLastNHistoryAsync(inputHistory, historyCount, Console.OpenStandardOutput()).Wait();
+                    else
+                        HistoryHandler.ListHistoryAsync(inputHistory, Console.OpenStandardOutput()).Wait();
                     break;
                 default: //now we assume the command is a program
                     var executable = FindExecutableInPath(command);

@@ -226,7 +226,10 @@ public static class PipelineHandler
                 break;
             
             case "history":
-                HistoryHandler.ListHistoryAsync(inputHistory, output).Wait();
+                if (tokens.Count > 1 && int.TryParse(tokens[1], out int historyCount))
+                    await HistoryHandler.ListLastNHistoryAsync(inputHistory, historyCount, output);
+                else
+                    await HistoryHandler.ListHistoryAsync(inputHistory, output);
                 break;
 
             default:
