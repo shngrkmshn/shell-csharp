@@ -141,6 +141,7 @@ class Program
             
             //very simple command history
             inputHistory.Add(consoleInput);
+            ReadLine.AddHistory(consoleInput);
             
             //flags for all redirection behavior, maybe could be improved to be more readable later.
             var redirectionIndex = tokenizedInput.FindIndex(t => t is ">" or "1>");

@@ -11,9 +11,6 @@ public class HistoryHandler
     {
         int index = 0;
 
-        // optional: only do this in interactive mode, not in pipeline/tests
-        // await WriteLineToStreamAsync("", output);
-
         foreach (string input in inputHistory)
         {
             await PipelineHandler.WriteLineToStreamAsync(FormatHistoryLine(index, input), output);
