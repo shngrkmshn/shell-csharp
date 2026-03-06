@@ -70,7 +70,7 @@ public static class PipelineHandler
         {
             // Decide stage input/output
             Stream input = (i == 0)
-                ? Stream.Null //bugs happen when this isnt like this
+                ? Stream.Null //bugs happen when this is not like this, no idea why
                 : pipes[i - 1].Reader.AsStream();
 
             Stream output = (i == n - 1)
@@ -226,10 +226,30 @@ public static class PipelineHandler
                 break;
             
             case "history":
-                if (tokens.Count > 1 && int.TryParse(tokens[1], out int historyCount))
-                    await HistoryHandler.ListLastNHistoryAsync(inputHistory, historyCount, output);
-                else
+                if (tokens.Count == 1)
+                {
                     await HistoryHandler.ListHistoryAsync(inputHistory, output);
+                }
+                else if (tokens.Count == 2 && int.TryParse(tokens[1], out int historyCount))
+                {
+                    await HistoryHandler.ListLastNHistoryAsync(inputHistory, historyCount, output);
+                }
+                else if (tokens.Count == 3 && tokens[1] is "-r")
+                {
+                    var historyFile = tokens[2];
+                    if (!File.Exists(historyFile))
+                    {
+                        await WriteLineToStreamAsync("history: missing or wrong argument", stderr);
+                        break;
+                    }
+
+                    var fileHistoryText = await HistoryHandler.ReadHistoryFileAsync(historyFile);
+                    inputHistory.AddRange(fileHistoryText);
+                }
+                else
+                {
+                    await WriteLineToStreamAsync("history: missing or wrong argument", stderr);
+                }
                 break;
 
             default:

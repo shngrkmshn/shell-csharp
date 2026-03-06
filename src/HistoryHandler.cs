@@ -29,4 +29,12 @@ public class HistoryHandler
             await PipelineHandler.WriteLineToStreamAsync(FormatHistoryLine(index, inputHistory[index]), output);
         }
     }
+
+    public static async Task<List<string>> ReadHistoryFileAsync(string historyFilePath)
+    {
+        var historyLines = await File.ReadAllLinesAsync(historyFilePath);
+        return historyLines
+            .Where(line => !string.IsNullOrWhiteSpace(line))
+            .ToList();
+    }
 }

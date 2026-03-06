@@ -404,9 +404,10 @@ ASALocalRun/
 # Local History for Visual Studio
 .localhistory/
 
-# Claude Code
+# Agent working files
+.claude/
 CLAUDE.md
-/nul
+
 
 # Local test executables
 test_bins/

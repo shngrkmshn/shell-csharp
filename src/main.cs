@@ -275,10 +275,30 @@ class Program
                     break;
                 
                 case "history":
-                    if (tokenizedInput.Count > 1 && int.TryParse(tokenizedInput[1], out int historyCount))
-                        HistoryHandler.ListLastNHistoryAsync(inputHistory, historyCount, Console.OpenStandardOutput()).Wait();
-                    else
+                    if (tokenizedInput.Count == 1)
+                    {
                         HistoryHandler.ListHistoryAsync(inputHistory, Console.OpenStandardOutput()).Wait();
+                    }
+                    else if (tokenizedInput.Count == 2 && int.TryParse(tokenizedInput[1], out int historyCount))
+                    {
+                        HistoryHandler.ListLastNHistoryAsync(inputHistory, historyCount, Console.OpenStandardOutput()).Wait();
+                    }
+                    else if (tokenizedInput.Count == 3 && tokenizedInput[1] is "-r")
+                    {
+                        var historyFile = tokenizedInput[2];
+                        if (!File.Exists(historyFile))
+                        {
+                            WriteOutput("history: missing or wrong argument", errorRedirectionFile, append);
+                            break;
+                        }
+
+                        var fileHistoryText = HistoryHandler.ReadHistoryFileAsync(historyFile).GetAwaiter().GetResult();
+                        inputHistory.AddRange(fileHistoryText);
+                    }
+                    else
+                    {
+                        WriteOutput("history: missing or wrong argument", errorRedirectionFile, append);
+                    }
                     break;
                 default: //now we assume the command is a program
                     var executable = FindExecutableInPath(command);
