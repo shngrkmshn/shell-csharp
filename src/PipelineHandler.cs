@@ -11,7 +11,14 @@ public static class PipelineHandler
         "cd", "exit", "echo", "pwd", "type", "history"
     };
     
-    
+    private static async Task WriteLinesToFileAsync(IEnumerable<string> lines, string path, bool append)
+    {
+        await using var writer = new StreamWriter(path, append);
+        foreach (var line in lines)
+        {
+            await writer.WriteLineAsync(line);
+        }
+    }
     public static bool TryParsePipeline(
         List<string> tokenizedInput,
         out List<List<string>> pipeline,
@@ -234,6 +241,7 @@ public static class PipelineHandler
                 {
                     await HistoryHandler.ListLastNHistoryAsync(inputHistory, historyCount, output);
                 }
+                
                 else if (tokens.Count == 3 && tokens[1] is "-r")
                 {
                     var historyFile = tokens[2];
@@ -245,6 +253,12 @@ public static class PipelineHandler
 
                     var fileHistoryText = await HistoryHandler.ReadHistoryFileAsync(historyFile);
                     inputHistory.AddRange(fileHistoryText);
+                }
+                else if (tokens.Count == 3 && tokens[1] == "-w")
+                {
+                    var historyFile = tokens[2];
+                    await WriteLinesToFileAsync(inputHistory, historyFile, append: false);
+                    break;
                 }
                 else
                 {

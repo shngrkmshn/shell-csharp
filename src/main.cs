@@ -101,6 +101,16 @@ class Program
             Console.WriteLine(content);
         }
     }
+    static void WriteOutputLines(IEnumerable<string> lines, string? redirectFile, bool append)
+    {
+        bool useAppend = append;
+
+        foreach (var line in lines)
+        {
+            WriteOutput(line, redirectFile, useAppend);
+            useAppend = true;
+        }
+    }
     
     static void PrepareRedirectionFile(string? path)
     {
@@ -294,6 +304,11 @@ class Program
 
                         var fileHistoryText = HistoryHandler.ReadHistoryFileAsync(historyFile).GetAwaiter().GetResult();
                         inputHistory.AddRange(fileHistoryText);
+                    }
+                    else if (tokenizedInput.Count == 3 && tokenizedInput[1] is "-w")
+                    {
+                        PrepareRedirectionFile(tokenizedInput[3]);
+                        WriteOutputLines(inputHistory, redirectFile, append);
                     }
                     else
                     {
