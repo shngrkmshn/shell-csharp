@@ -11,6 +11,7 @@ public static class PipelineHandler
         "cd", "exit", "echo", "pwd", "type", "history"
     };
     
+
     private static async Task WriteLinesToFileAsync(IEnumerable<string> lines, string path, bool append)
     {
         await using var writer = new StreamWriter(path, append);
@@ -254,11 +255,23 @@ public static class PipelineHandler
                     var fileHistoryText = await HistoryHandler.ReadHistoryFileAsync(historyFile);
                     inputHistory.AddRange(fileHistoryText);
                 }
-                else if (tokens.Count == 3 && tokens[1] == "-w")
+                else if (tokens.Count == 3)
                 {
-                    
-                    var historyFile = Program.FindExecutableInPath(tokens[2]);
-                    if (historyFile != null) await WriteLinesToFileAsync(inputHistory, historyFile, append: false);
+                    var toWriteHistoryFile = tokens[2];
+                    switch (tokens[1])
+                    {
+                        case "w":
+                            Program.PrepareRedirectionFile(toWriteHistoryFile);
+                            await WriteLinesToFileAsync(inputHistory, toWriteHistoryFile, append: false);
+                            break;
+                        case "a":
+                            Program.PrepareRedirectionFile(toWriteHistoryFile);
+                            await WriteLinesToFileAsync(inputHistory, toWriteHistoryFile, append: true);
+                            break;
+                        default:
+                            await WriteLineToStreamAsync("history: missing or wrong argument", stderr);
+                            break;
+                    }
                 }
                 else
                 {

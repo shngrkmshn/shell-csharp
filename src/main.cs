@@ -112,7 +112,7 @@ class Program
         }
     }
     
-    static void PrepareRedirectionFile(string? path)
+    public static void PrepareRedirectionFile(string? path)
     {
         if (path == null) return;
 
@@ -305,11 +305,22 @@ class Program
                         var fileHistoryText = HistoryHandler.ReadHistoryFileAsync(historyFile).GetAwaiter().GetResult();
                         inputHistory.AddRange(fileHistoryText);
                     }
-                    else if (tokenizedInput.Count == 3 && tokenizedInput[1] is "-w")
+                    else if (tokenizedInput.Count == 3)
                     {
                         var toWriteHistoryFile = tokenizedInput[2];
-                        PrepareRedirectionFile(toWriteHistoryFile);
-                        WriteOutputLines(inputHistory, toWriteHistoryFile, append);
+                        switch (tokenizedInput[1])
+                        {
+                            
+                            case "w":
+                                PrepareRedirectionFile(toWriteHistoryFile);
+                                WriteOutputLines(inputHistory, toWriteHistoryFile, append);
+                                break;
+                            case "a":
+                                PrepareRedirectionFile(toWriteHistoryFile);
+                                WriteOutputLines(inputHistory, toWriteHistoryFile, true);
+                                break;
+                        }
+                        
                     }
                     else
                     {
