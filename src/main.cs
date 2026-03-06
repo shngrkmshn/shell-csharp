@@ -307,8 +307,9 @@ class Program
                     }
                     else if (tokenizedInput.Count == 3 && tokenizedInput[1] is "-w")
                     {
-                        PrepareRedirectionFile(tokenizedInput[3]);
-                        WriteOutputLines(inputHistory, redirectFile, append);
+                        var toWriteHistoryFile = tokenizedInput[2];
+                        PrepareRedirectionFile(toWriteHistoryFile);
+                        WriteOutputLines(inputHistory, toWriteHistoryFile, append);
                     }
                     else
                     {

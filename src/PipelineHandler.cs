@@ -256,9 +256,9 @@ public static class PipelineHandler
                 }
                 else if (tokens.Count == 3 && tokens[1] == "-w")
                 {
-                    var historyFile = tokens[2];
-                    await WriteLinesToFileAsync(inputHistory, historyFile, append: false);
-                    break;
+                    
+                    var historyFile = Program.FindExecutableInPath(tokens[2]);
+                    if (historyFile != null) await WriteLinesToFileAsync(inputHistory, historyFile, append: false);
                 }
                 else
                 {
