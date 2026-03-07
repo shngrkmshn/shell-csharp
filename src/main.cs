@@ -140,7 +140,12 @@ class Program
         
         string? histFile = Environment.GetEnvironmentVariable("HISTFILE");
         if (histFile != null)
-            inputHistory.Add(histFile);
+        {
+            List<string> histFileText;
+            histFileText = File.ReadAllLines(histFile).ToList();
+            inputHistory.AddRange(histFileText);
+
+        }
         
         while (true)
         {
