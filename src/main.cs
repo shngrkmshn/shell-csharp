@@ -138,6 +138,10 @@ class Program
         var inputHistory =  new List<string>();
         var appendPersistentHistory = 0; //for file history append. Why? To keep track of the last history command appended for later appends
         
+        string? histFile = Environment.GetEnvironmentVariable("HISTFILE");
+        if (histFile != null)
+            inputHistory.Add(histFile);
+        
         while (true)
         {
             var append = false;
@@ -173,7 +177,7 @@ class Program
                     Console.WriteLine(err);
                     continue;
                 }
-                PipelineHandler.RunPipelineN(pipeline, inputHistory).GetAwaiter().GetResult();
+                PipelineHandler.RunPipelineN(pipeline, inputHistory, histFile).GetAwaiter().GetResult();
                 continue;
             }
             //redirect needed or not
@@ -255,6 +259,7 @@ class Program
                     break;
                 case "exit":
                     Console.WriteLine("exit");
+                    if (histFile != null) File.WriteAllLines(histFile, inputHistory);
                     return;
                 case "echo":
                     WriteOutput(message, redirectFile, append);

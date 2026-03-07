@@ -62,7 +62,7 @@ public static class PipelineHandler
     
     
     // pipeline[i] is the token list of command i (no "|" tokens inside)
-    public static async Task RunPipelineN(List<List<string>> pipeline, List<string> inputHistory)
+    public static async Task RunPipelineN(List<List<string>> pipeline, List<string> inputHistory, string? histFile)
     {
         int n = pipeline.Count;
         if (n == 0) return;
@@ -89,7 +89,7 @@ public static class PipelineHandler
             bool closeOutput = (i != n - 1);  // only close pipe streams
 
             // Capture locals for task
-            tasks[i] = RunStageAsync(pipeline[i], input, output, closeInput, closeOutput, inputHistory);
+            tasks[i] = RunStageAsync(pipeline[i], input, output, closeInput, closeOutput, inputHistory, histFile);
         }
 
         await Task.WhenAll(tasks);
@@ -101,7 +101,8 @@ public static class PipelineHandler
         Stream output,
         bool closeInput,
         bool closeOutput,
-        List<string> inputHistory)
+        List<string> inputHistory,
+        string? histFile)
     {
         try
         {
@@ -109,7 +110,7 @@ public static class PipelineHandler
 
             if (IsBuiltin(cmd))
             {
-                await RunBuiltinAsync(tokens, input, output, inputHistory);
+                await RunBuiltinAsync(tokens, input, output, inputHistory, histFile);
             }
             else
             {
@@ -172,7 +173,7 @@ public static class PipelineHandler
         byte[] bytes = Encoding.UTF8.GetBytes(content + Environment.NewLine);
         return stream.WriteAsync(bytes, 0, bytes.Length);
     }
-    private static async Task RunBuiltinAsync(List<string> tokens, Stream input, Stream output, List<string> inputHistory)
+    private static async Task RunBuiltinAsync(List<string> tokens, Stream input, Stream output, List<string> inputHistory, string? histFile)
     {
         if (tokens.Count == 0) return;
 
@@ -219,6 +220,7 @@ public static class PipelineHandler
 
             case "exit":
                 await WriteLineToStreamAsync("exit", output);
+                if (histFile != null) File.WriteAllLines(histFile, inputHistory);
                 return;
 
             case "echo":
