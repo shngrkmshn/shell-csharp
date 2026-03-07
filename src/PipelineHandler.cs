@@ -260,11 +260,11 @@ public static class PipelineHandler
                     var toWriteHistoryFile = tokens[2];
                     switch (tokens[1])
                     {
-                        case "w":
+                        case "-w":
                             Program.PrepareRedirectionFile(toWriteHistoryFile);
                             await WriteLinesToFileAsync(inputHistory, toWriteHistoryFile, append: false);
                             break;
-                        case "a":
+                        case "-a":
                             Program.PrepareRedirectionFile(toWriteHistoryFile);
                             await WriteLinesToFileAsync(inputHistory, toWriteHistoryFile, append: true);
                             break;

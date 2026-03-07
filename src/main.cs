@@ -136,6 +136,7 @@ class Program
         ReadLine.ReadLine.Context.AutoCompletionHandler = new AutoCompletionHandler();
         ReadLine.ReadLine.Context.HistoryEnabled = true;
         var inputHistory =  new List<string>();
+        var appendPersistentHistory = 0; //for file history append. Why? To keep track of the last history command appended for later appends
         
         while (true)
         {
@@ -311,16 +312,19 @@ class Program
                         switch (tokenizedInput[1])
                         {
                             
-                            case "w":
+                            case "-w":
                                 PrepareRedirectionFile(toWriteHistoryFile);
-                                WriteOutputLines(inputHistory, toWriteHistoryFile, append);
+                                WriteOutputLines(inputHistory, toWriteHistoryFile, false);
                                 break;
-                            case "a":
+                            case "-a":
                                 PrepareRedirectionFile(toWriteHistoryFile);
-                                WriteOutputLines(inputHistory, toWriteHistoryFile, true);
+                                WriteOutputLines(inputHistory.Skip(appendPersistentHistory), toWriteHistoryFile, true);
+                                appendPersistentHistory = inputHistory.Count;
+                                break;
+                            default:
+                                WriteOutput("history: missing or wrong argument", errorRedirectionFile, append);
                                 break;
                         }
-                        
                     }
                     else
                     {
