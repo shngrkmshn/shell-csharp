@@ -42,6 +42,9 @@ A custom shell implementation in C# built as a [CodeCrafters](https://codecrafte
 - Persistent history via `HISTFILE` environment variable
 - Auto-loads on startup, saves on exit
 
+### Run Exectuables
+- Run any executable
+  
 ## Tech Stack
 
 - C# / .NET 9.0
